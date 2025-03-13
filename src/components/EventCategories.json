@@ -1,0 +1,44 @@
+{
+  "events": [
+    {
+      "name": "Academic",
+      "id": "1",
+      "href": "../views/Events/AcademicEvents.vue"
+    },
+    {
+      "name": "Debate",
+      "id": "2",
+      "href": "../views/Events/DebateEvents.vue"
+    },
+    {
+      "name": "Music and Drama",
+      "id": "3",
+      "href": "../views/Events/MusicEvents.vue"
+    },
+    {
+      "name": "Coding competitions",
+      "id": "4",
+      "href": "../views/Events/CodingEvents.vue"
+    },
+    {
+      "name": "Robotics Fairs",
+      "id": "5",
+      "href": "../views/Events/RoboticsFairs.vue"
+    },
+    {
+      "name": "Olympiads",
+      "id": "6",
+      "href": "../views/Events/OlympiadEvents.vue"
+    },
+    {
+      "name": "Workshops and Seminars",
+      "id": "7",
+      "href": "../views/Events/WorkshopsSeminars.vue"
+    },
+    {
+      "name": "Work-study programs",
+      "id": "8",
+      "href": "../views/Events/WorkStudy.vue"
+    }
+  ]
+}

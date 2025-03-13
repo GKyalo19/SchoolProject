@@ -1,5 +1,5 @@
 <template>
-  <div :style="backgroundStyle">
+  <div :style="backgroundStyle" class="image">
     <div class="glass">
       <v-main>
         <v-container> </v-container>
@@ -29,8 +29,7 @@ const backgroundStyle = {
 
 <style>
 .glass {
-  background: rgba(29, 28, 77, 0.39);
-
+  background: rgba(16, 16, 48, 0.452);
   padding: 20px;
   width: 100%;
   height: 100%;

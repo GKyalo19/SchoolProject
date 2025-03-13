@@ -2,11 +2,14 @@
   <div class="app">
     <v-app>
       <SplashScreen v-if="showSplash" />
+      <NavigationBar v-if="!showSplash" />
       <div v-if="!showSplash" class="main-content"></div>
 
       <div v-if="showRest">
-        <NavigationBar />
-        <RouterView />
+        <v-content>
+          <RouterView />
+        </v-content>
+
         <PageFooter />
       </div>
     </v-app>
@@ -19,6 +22,7 @@ import NavigationBar from './components/NavigationBar.vue'
 import PageFooter from './components/PageFooter.vue'
 
 export default {
+  name: 'App',
   components: {
     SplashScreen,
     NavigationBar,
