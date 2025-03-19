@@ -30,17 +30,17 @@ onMounted(() => {
 h1 {
   font-size: 8rem;
   font-weight: 700;
-  color: #124232;
+  color: black;
 }
 
 .splash-screen {
-  background-image: url(../assets/image.png);
+  background-image: url(../assets/AfricanPattern.png);
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: #684e1ea8;
+  background: #00000081;
   display: flex;
   flex-direction: column;
   align-items: center;

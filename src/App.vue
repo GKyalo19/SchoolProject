@@ -2,16 +2,15 @@
   <div class="app">
     <v-app>
       <SplashScreen v-if="showSplash" />
-      <NavigationBar v-if="!showSplash" />
+      <NavigationBar v-if="!showSplash && shouldShowNavBar" />
       <div v-if="!showSplash" class="main-content"></div>
 
-      <div v-if="showRest">
-        <v-content>
-          <RouterView />
-        </v-content>
+      <div v-if="!showSplash"></div>
 
-        <PageFooter />
-      </div>
+      <v-content>
+        <RouterView />
+        <PageFooter v-if="shouldShowFooter" />
+      </v-content>
     </v-app>
   </div>
 </template>
@@ -30,23 +29,28 @@ export default {
   },
   data() {
     return {
-      showSplash: true,
-      showRest: false,
+      showSplash: !localStorage.getItem('splashShown'),
     }
   },
+  computed: {
+    shouldShowFooter() {
+      // Hide footer for these routes
+      const hiddenRoutes = ['/login', '/signup', '/forgotpassword', '/resetpassword']
+      return !hiddenRoutes.includes(this.$route.path)
+    },
+    shouldShowNavBar() {
+      // Hide navbar for these routes
+      const hiddenRoutes = ['/login', '/signup', '/forgotpassword', '/resetpassword']
+      return !hiddenRoutes.includes(this.$route.path)
+    },
+  },
   mounted() {
-    setTimeout(() => {
-      this.showSplash = false
-    }, 2000)
-
-    // setTimeout(() => {
-    //   // Redirect to home page after 3.5 seconds
-    //   this.$router.push('/')
-    // }, 2000)
-
-    setTimeout(() => {
-      this.showRest = true
-    }, 2000)
+    if (this.showSplash) {
+      setTimeout(() => {
+        this.showSplash = false
+        localStorage.setItem('splashShown', 'true')
+      }, 2000)
+    }
   },
 }
 </script>

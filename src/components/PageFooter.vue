@@ -24,7 +24,7 @@ export default {
 
 <style scoped>
 .vuefooter {
-  height: 300px;
+  height: 150px;
   position: absolute;
   bottom: 0;
   justify-self: center;
