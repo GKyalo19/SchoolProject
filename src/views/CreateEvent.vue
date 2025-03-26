@@ -205,7 +205,7 @@
 
 <script setup>
 import { useAuth } from '@/services/auth.service'
-import backgroundImage from '../assets/Backgrounds/Dancers3.png'
+import backgroundImage from '../assets/backgrounds/Dancers3.png'
 import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '@/stores/users'
 import { useEventsStore } from '@/stores/events'

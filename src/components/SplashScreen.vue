@@ -34,13 +34,12 @@ h1 {
 }
 
 .splash-screen {
-  background-image: url(../assets/AfricanPattern.png);
+  background-image: url(../assets/backgrounds/AfricanPattern.png);
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: #00000081;
   display: flex;
   flex-direction: column;
   align-items: center;
