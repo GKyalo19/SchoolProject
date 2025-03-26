@@ -13,17 +13,20 @@ const loading = ref(false)
 const error = ref(null)
 
 // Export composable function to use the auth service
-export function useAuth() {   //when using this file you'll import it as useAuth
+export function useAuth() {
+  //when using this file you'll import it as useAuth
   // Initialize auth on first use
-  if (!user.value && TokenService.isAuthenticated()) {  //token value is false (isAuthenticated means there's no user)
+
+  if (!user.value && TokenService.isAuthenticated()) {
     loadUserInfo()
   }
 
   // Check if user is authenticated
-  const isAuthenticated = computed(() => !!user.value)  //whenever there's no user value
+  const isAuthenticated = computed(() => !!user.value) //whenever there's no user value
 
   // Check if user is an admin
-  const isAdmin = computed(() => {   //only admin if the slug part of your role is admin
+  const isAdmin = computed(() => {
+    //only admin if the slug part of your role is admin
     return user.value && user.value.role?.slug === 'admin'
   })
 
@@ -49,13 +52,14 @@ export function useAuth() {   //when using this file you'll import it as useAuth
         throw new Error('Email and password are required')
       }
 
-      const response = await api.post('login', credentials)  //if email and password are populated
+      const response = await api.post('login', credentials) //if email and password are populated
 
-      console.log ("RESPONSE DATA: ", response.data)
+      console.log('RESPONSE DATA: ', response.data)
 
       // Check if we have user and token in the response
-      if (response.data.token && response.data.user) {    //response.data has a token and user
-        const { token, user: userData} = response.data
+      if (response.data.token && response.data.user) {
+        //response.data has a token and user
+        const { token, user: userData } = response.data
 
         // Save token
         TokenService.setToken(token)
@@ -63,6 +67,11 @@ export function useAuth() {   //when using this file you'll import it as useAuth
 
         // Set user data and abilities
         user.value = userData
+
+        // Store user data in localStorage
+        localStorage.setItem('user', JSON.stringify(userData)) // Serialize the user object
+
+        await loadUserInfo()
 
         return response
       } else {
@@ -79,16 +88,15 @@ export function useAuth() {   //when using this file you'll import it as useAuth
 
   // Register method
   async function register(userData) {
-    loading.value = true   //that circle that shows you sth is loading
+    loading.value = true //that circle that shows you sth is loading
     error.value = null
-
 
     //when you're registering no token is sent coz it's public
     try {
       const response = await api.post('register', userData)
       return response
     } catch (err) {
-      error.value = err.response?.data?.message || 'Registration failed'  //either prints the exact error message or shows the "Registration failed"
+      error.value = err.response?.data?.message || 'Registration failed' //either prints the exact error message or shows the "Registration failed"
       throw err
     } finally {
       loading.value = false
@@ -96,43 +104,58 @@ export function useAuth() {   //when using this file you'll import it as useAuth
   }
 
   // Logout method
-  async function logout() {  //we add async to make it an api request
+  async function logout() {
+    //we add async to make it an api request
     user.value = null
 
     try {
       const response = await api.get('logout')
       return response
     } catch (err) {
-      error.value = err.response?.data?.message || 'Logout failed'  //either prints the exact error message or shows the "Registration failed"
+      error.value = err.response?.data?.message || 'Logout failed' //either prints the exact error message or shows the "Registration failed"
       throw err
     } finally {
       loading.value = false
       TokenService.removeToken()
     }
-
   }
 
   // Load user info from server
-  async function loadUserInfo() {   //fetches the user information
+  async function loadUserInfo() {
+    //fetches the user information
     loading.value = true
     error.value = null
 
     try {
       if (TokenService.isAuthenticated()) {
-        const response = await api.get('me')
+        //Check localStorage for user data first
+        const storedUser = localStorage.getItem('user')
 
-        // Check if we have valid user data
-        if (response.data.user) {
-          user.value = response.data.user
+        console.log('storedUser: ', storedUser)
 
+        //this part is hella important in loading the userinformation
+        if (storedUser) {
+          user.value = JSON.parse(storedUser)
+
+          console.log('It has been parsed')
         } else {
-          throw new Error('Invalid user data')
+          //Fetch user info from the server if not in localStorage
+          const response = await api.get('me')
+
+          console.log('Has had to fetch data from server directly')
+          // Check if we have valid user data
+          if (response.data.user) {
+            user.value = response.data.user
+          } else {
+            throw new Error('Invalid user data')
+          }
         }
       }
     } catch (err) {
       console.error('Failed to load user info:', err)
       error.value = 'Failed to load user info'
       TokenService.removeToken()
+      localStorage.removeItem('user') //clear invalid user data
     } finally {
       loading.value = false
     }
@@ -166,7 +189,7 @@ export function useAuth() {   //when using this file you'll import it as useAuth
     register,
     logout,
     loadUserInfo,
-    updateProfile
+    updateProfile,
   }
 }
 
@@ -196,7 +219,7 @@ const globalAuthService = {
   updateProfile: async (profileData) => {
     const { updateProfile } = useAuth()
     return updateProfile(profileData)
-  }
+  },
 }
 
 export default globalAuthService

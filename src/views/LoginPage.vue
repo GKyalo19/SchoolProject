@@ -63,7 +63,6 @@
                   padding="10px"
                   class="text-h4"
                   image="../assets/backgrounds/AfricanPattern.png"
-                  :to="'/'"
                   type="submit"
                   :loading="loading"
                   @click="handleLogin"
@@ -139,7 +138,7 @@ async function handleLogin() {
   //const isValid = form.value?.validate()
 
   //if (!isValid) {
-   // return
+  // return
   //}
   console.log('>>>>>>>Login Function')
 
@@ -149,10 +148,15 @@ async function handleLogin() {
   }
 
   try {
-    await login({
+    const user = await login({
       email: email.value,
       password: password.value,
     })
+
+    //Store user data in localStorage if "Remember Me" is checked
+    if (rememberMe.value && user) {
+      localStorage.setItem('user', JSON.stringify(user)) //store it as a string
+    }
 
     // Redirect after successful login
     router.push('/')
@@ -169,7 +173,7 @@ const backgroundStyle = {
   backgroundRepeat: 'no-repeat',
   height: '100vh',
   width: '100vw',
-  position: 'fixed',
+
   top: '0',
   left: '0',
   display: 'flex',

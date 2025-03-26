@@ -2,24 +2,23 @@
   <div :style="backgroundStyle" class="image">
     <div class="glass">
       <v-main>
-        <v-container>
-          <v-row>
-            <v-col cols="12" md="4" v-for="item in orderItems" :key="item">
-              <v-card color="yellow">
-                <v-card-item>
-                  <v-card-title>{{ item.name }}</v-card-title>
-
-                  <v-card-subtitle>{{ item.description }}</v-card-subtitle>
-                </v-card-item>
-                <v-img height="200px" :src="item.image" cover></v-img>
-
-                <v-card-text>{{ item.price }}</v-card-text>
-
-                <v-card-actions>
-                  <v-btn color="black" variant="tonal" @click="removeFromOrder(item)">
-                    Remove</v-btn
-                  >
-                </v-card-actions>
+        <v-container fill-height class="bigbox" color="transparent">
+          <v-row align-self="center">
+            <v-col align-self="center">
+              <v-card color="transparent" align-self="center">
+                <div class="firstCard">
+                  <h1>Funkies 254</h1>
+                  <v-text-field
+                    v-model="searchQuery"
+                    placeholder="Search any event..."
+                    outlined
+                    dense
+                    class="ma-2"
+                    prepend-inner-icon="mdi-magnify"
+                    hide-details
+                    color="white"
+                  ></v-text-field>
+                </div>
               </v-card>
             </v-col>
           </v-row>
@@ -52,9 +51,39 @@ const backgroundStyle = {
 
 <style>
 .glass {
-  background: rgba(16, 16, 48, 0.452);
+  background: rgba(0, 0, 0, 0.767);
   padding: 20px;
   width: 100%;
   height: 100%;
+}
+.bigbox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+}
+.firstCard {
+  background-color: rgba(0, 0, 0, 0.822);
+  height: 250px;
+  width: 600px;
+  border-radius: 30px;
+  padding: 20px;
+  padding-bottom: 30px;
+  margin-bottom: 100px;
+  align-content: center;
+  justify-content: center;
+  place-items: center;
+}
+h1 {
+  font-family: serif;
+  color: white;
+  font-size: 5rem;
+}
+.v-text-field {
+  color: white;
+  height: 3rem;
+  width: 500px;
 }
 </style>

@@ -31,7 +31,7 @@
 </style>
 
 <script setup>
-import backgroundImage from '../assets/backgrounds/Dancers2.png'
+import backgroundImage from '../assets/math/olympiad.png'
 
 const backgroundStyle = {
   backgroundImage: `url(${backgroundImage})`,

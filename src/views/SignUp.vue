@@ -31,9 +31,9 @@
                     label="name"
                     prepend-inner-icon="mdi-account"
                     :rules="[(v) => !!v || 'Name is required']"
-                    required
                     outlined
                     dense
+                    required
                   ></v-text-field>
 
                   <v-label>Email</v-label>
@@ -45,9 +45,9 @@
                     ]"
                     label="email"
                     prepend-inner-icon="mdi-email"
-                    required
                     outlined
                     dense
+                    required
                     autocomplete="off"
                   ></v-text-field>
 
@@ -63,9 +63,9 @@
                     prepend-inner-icon="mdi-lock"
                     :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
                     @click:append-inner="showPassword = !showPassword"
-                    required
                     outlined
                     dense
+                    required
                     autocomplete="new-password"
                   ></v-text-field>
 
@@ -81,12 +81,27 @@
                     prepend-inner-icon="mdi-lock-check"
                     :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
                     @click:append-inner="showConfirmPassword = !showPassword"
-                    required
                     outlined
                     dense
+                    required
                     autocomplete="new-password"
                   ></v-text-field>
                 </v-card>
+
+                <div class="mt-4">
+                  <v-file-input
+                    v-model="userPhoto"
+                    :rules="[(v) => !!v || 'Profile picture is required']"
+                    accept="image/png, image/jpeg, image/jpg"
+                    placeholder="Upload your profile picture"
+                    prepend-icon="mdi-camera"
+                    label="Profile Picture"
+                    show-size
+                    counter
+                    outlined
+                    dense
+                  ></v-file-input>
+                </div>
 
                 <v-btn
                   align="center"
@@ -96,19 +111,11 @@
                   padding="10px"
                   class="text-h4"
                   image="../assets/backgrounds/AfricanPattern.png"
-                  :to="'/'"
-                  type="submit"
                   @click="register"
+                  type="submit"
                   :loading="loading"
                 >
                   SignUp </v-btn
-                ><br /><br />
-
-                <v-text>
-                  ALready have an account
-                  <v-btn variant="text" color="teal darken-1" :to="'/login'">
-                    Login
-                  </v-btn> </v-text
                 ><br /><br />
 
                 <v-card align="center" justify="center" color="black" class="opacity-60">
@@ -149,7 +156,7 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const password_confirmation = ref('')
-// const userPhoto = ref(null)
+const userPhoto = ref(null)
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
 const loading = ref(false)
@@ -159,9 +166,14 @@ const errorMessage = ref('')
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
 
 const register = async () => {
-  const isValid = form.value.validate()
+  const { valid } = await form.value.validate()
 
-  if (!isValid) return
+  console.log('Form is valid:', valid)
+
+  if (!valid) {
+    errorMessage.value = 'Please fill out all required fields correctly.'
+    return
+  }
 
   loading.value = true
   errorMessage.value = ''
@@ -172,9 +184,9 @@ const register = async () => {
   formData.append('password', password.value)
   formData.append('password_confirmation', password_confirmation.value)
 
-  // if (userPhoto.value) {
-  //   formData.append('user_photo', userPhoto.value)
-  // }
+  if (userPhoto.value) {
+    formData.append('user_photo', userPhoto.value)
+  }
 
   // Log the form data to check the payload
   console.log([...formData.entries()])
@@ -196,15 +208,15 @@ const register = async () => {
     localStorage.setItem('user', JSON.stringify(response.data.user))
 
     // Navigate to welcome page
-    router.push('/')
+    router.push('/welcome')
   } catch (error) {
     console.error('Registration error:', error)
 
     if (error.response) {
       if (error.response.data.errors) {
         const errors = error.response.data.errors
-        const firstError = Object.values(errors)[0]
-        errorMessage.value = firstError[0]
+        const firstError = Object.values(errors)
+        errorMessage.value = firstError
       } else {
         errorMessage.value = error.response.data.message || 'Registration failed. Please try again.'
       }
@@ -225,7 +237,6 @@ const backgroundStyle = {
   backgroundRepeat: 'no-repeat',
   height: '100vh',
   width: '100vw',
-  position: 'fixed',
   top: '0',
   left: '0',
   display: 'flex',

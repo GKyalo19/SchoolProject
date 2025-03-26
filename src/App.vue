@@ -1,31 +1,36 @@
 <template>
   <div class="app">
     <v-app>
-      <SplashScreen v-if="showSplash" />
-      <NavigationBar v-if="!showSplash && shouldShowNavBar" />
-      <div v-if="!showSplash" class="main-content"></div>
+      <v-main>
+        <SplashScreen v-if="showSplash" />
+        <NavigationBar v-if="!showSplash && shouldShowNavBar" />
+        <div v-if="!showSplash" class="main-content"></div>
 
-      <div v-if="!showSplash"></div>
+        <div v-if="!showSplash"></div>
 
-      <v-content>
-        <RouterView />
-        <PageFooter v-if="shouldShowFooter" />
-      </v-content>
+        <v-content>
+          <RouterView />
+        </v-content>
+        <v-divider></v-divider>
+      </v-main>
+      <!-- <PageFooter v-if="shouldShowFooter" /> -->
     </v-app>
+
+
   </div>
 </template>
 
 <script>
 import SplashScreen from './components/SplashScreen.vue'
 import NavigationBar from './components/NavigationBar.vue'
-import PageFooter from './components/PageFooter.vue'
+//import PageFooter from './components/PageFooter.vue'
 
 export default {
   name: 'App',
   components: {
     SplashScreen,
     NavigationBar,
-    PageFooter,
+    //PageFooter,
   },
   data() {
     return {

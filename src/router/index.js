@@ -13,6 +13,10 @@ import AboutUs from '@/views/AboutUs.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import WelcomePage from '@/views/WelcomePage.vue'
 import RolePage from '@/views/RolePage.vue'
+import ContactUs from '@/components/ContactUs.vue'
+import FeedBack from '@/views/FeedBack.vue'
+import CreateEvent from '@/views/CreateEvent.vue'
+import RegisterEvent from '@/views/RegisterEvent.vue'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -35,22 +39,22 @@ const router = createRouter({
     {
       path: '/about',
       name: 'about',
-      component: AboutUs
+      component: AboutUs,
     },
     {
       path: '/forgotpassword',
       name: 'forgotpassword',
-      component: ForgotPassword
+      component: ForgotPassword,
     },
     {
       path: '/resetpassword',
       name: 'resetpassword',
-      component: ResetPassword
+      component: ResetPassword,
     },
     {
       path: '/signup',
       name: 'signup',
-      component: SignUp
+      component: SignUp,
     },
     {
       path: '/welcome',
@@ -65,27 +69,47 @@ const router = createRouter({
     {
       path: '/events',
       name: 'events',
-      component: AllEvents
+      component: AllEvents,
+    },
+    {
+      path: '/create',
+      name: 'create',
+      component: CreateEvent,
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: RegisterEvent,
+    },
+    {
+      path: '/contact-us',
+      name: 'contact-us',
+      component: ContactUs,
+    },
+    {
+      path: '/feedback',
+      name: 'feedback',
+      component: FeedBack,
     },
     {
       path: '/events/international',
       name: 'internationalEvents',
-      component: InternationalEvents
+      component: InternationalEvents,
     },
     {
       path: '/events/national',
       name: 'nationalEvents',
-      component: NationalEvents
+      component: NationalEvents,
     },
     {
       path: '/events/national/Academic',
       name: 'AcademicEvents',
-      component: AcademicEvents
+      component: AcademicEvents,
     },
     {
       path: '/events/national/Debate',
       name: 'DebateEvents',
-      component: DebateEvents
+      component: DebateEvents,
     },
   ],
 })

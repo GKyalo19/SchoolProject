@@ -3,29 +3,34 @@
     <v-row justify="center" no-gutters>
       <v-btn
         v-for="link in links"
-        :key="link"
+        :key="link.route"
         class="mx-2"
         color="white"
         rounded="xl"
         variant="text"
+        router
+        :to="link.route"
       >
-        {{ link }}
+        {{ link.text }}
       </v-btn>
     </v-row>
   </v-footer>
 </template>
-<script>
-export default {
-  data: () => ({
-    links: ['Home', 'About Us', 'Team', 'Services', 'Blog', 'Contact Us'],
-  }),
-}
+
+<script setup>
+const links = [
+  { text: 'Home', route: '/' },
+  { text: 'About Us', route: '/about' },
+  { text: 'Events', route: '/events' },
+  { text: 'Contact Us', route: '/contact-us' },
+  { text: 'Feedback', route: '/feedback' },
+]
 </script>
 
 <style scoped>
 .vuefooter {
-  height: 150px;
-  position: absolute;
+  height: 50px;
+  position: relative;
   bottom: 0;
   justify-self: center;
   width: 100vw;

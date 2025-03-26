@@ -6,9 +6,11 @@ class TokenService {
   setToken(token) {
     localStorage.setItem('authToken', token) //name and what is coming
   }
+
   setUser(user) {
     localStorage.setItem('user', user)
   }
+
   getToken() {
     const token = localStorage.getItem('authToken')
     console.log('This is my Token --->>', token)
