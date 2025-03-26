@@ -35,6 +35,8 @@ h1 {
 
 .splash-screen {
   background-image: url(../assets/backgrounds/AfricanPattern.png);
+  background-size: cover;
+  background-repeat: no-repeat;
   position: fixed;
   top: 0;
   left: 0;
