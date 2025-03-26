@@ -31,7 +31,7 @@
 </template>
 
 <script setup>
-import backgroundImage from '../assets/Backgrounds/Dancers2.png'
+import backgroundImage from '../assets/backgrounds/Dancers2.png'
 
 const backgroundStyle = {
   backgroundImage: `url(${backgroundImage})`,
