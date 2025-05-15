@@ -62,8 +62,7 @@
                   height="50px"
                   padding="10px"
                   class="text-h4"
-                  image="../assets/backgrounds/AfricanPattern.png"
-                  type="submit"
+                  :style="{ backgroundImage: 'url(../assets/backgrounds/AfricanPattern.png)', backgroundSize: 'cover' }"
                   :loading="loading"
                   @click="handleLogin"
                 >

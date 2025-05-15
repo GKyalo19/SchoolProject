@@ -147,7 +147,7 @@
 import backgroundImage from '../assets/backgrounds/Dancers3.png'
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import axios from 'axios'
+import axios from '../services/api'
 
 const router = useRouter()
 

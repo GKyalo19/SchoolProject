@@ -1,52 +1,63 @@
 <template>
   <v-app>
-    <!-- Vertical Navigation Drawer -->
-    <v-navigation-drawer
-      permanent
-      location="right"
-      width="auto"
-      class="nav-drawer"
-      color="transparent"
-    >
-      <!-- User Info Section (if authenticated) -->
-      <v-layout column align-center v-if="isAuthenticated || !hideForUnauthenticated">
-        <v-flex class="my-2 mx-auto text-center">
-          <v-avatar size="60">
-            <v-img :src="userAvatar" :alt="userName"></v-img>
+    <!-- Top Navigation Bar -->
+    <v-app-bar color="black" dark app>
+      <!-- Logo + Name -->
+      <v-btn icon to="/">
+        <v-img src="../assets/backgrounds/FunkiesBadge.png" contain max-height="40" max-width="40"></v-img>
+      </v-btn>
+      <v-btn text to="/" class="ml-2 font-weight-bold text-h6 text-white">
+        Funkies254
+      </v-btn>
+
+      <!-- Search Bar  -->
+      <v-text-field
+        v-model="searchQuery"
+        placeholder="Search..."
+        hide-details
+        flat
+        solo-inverted
+        prepend-inner-icon="mdi-magnify"
+        class="mx-5"
+        style="max-width: 300px"
+      ></v-text-field>
+
+      <!-- Nav Links -->
+      <v-btn text to="/" class="text-white">Home</v-btn>
+      <v-btn text to="/events" class="text-white">Discover</v-btn>
+      <v-btn text to="/likedEvents" class="text-white">Liked Events</v-btn>
+      <v-btn text to="/create" class="text-white">Create Event</v-btn>
+      <v-btn text to="/about" class="text-white">About Us</v-btn>
+
+      <v-spacer></v-spacer>
+
+      <!-- Notifications -->
+      <v-icon size="30">mdi-bell</v-icon>
+
+      <!-- User Dropdown -->
+      <v-menu offset-y>
+        <template v-slot:activator="{ on, attrs }">
+          <v-avatar v-bind="attrs" v-on="on" class="cursor-pointer">
+            <v-img :src="userAvatar" alt="Profile" />
           </v-avatar>
-          <p class="subheading mt-1 text-center userName">{{ userName }}</p>
-        </v-flex>
-      </v-layout>
-
-      <!-- Navigation Items -->
-      <v-list class="pa-0">
-        <!-- Loop through filteredPaths -->
-        <v-card
-          v-for="path in filteredPaths"
-          :key="path.text"
-          class="ma-1 nav-card"
-          @mouseover="hoveredItem = path.text"
-          @mouseleave="hoveredItem = null"
-          :elevation="hoveredItem === path.text ? 12 : 2"
-        >
-          <v-btn block variant="text" :to="path.route" class="text-left pa-5 buttons">
-            <v-icon left size="20">{{ path.icon }}</v-icon>
-            {{ path.text }}
-          </v-btn>
-        </v-card>
-
-        <v-btn
-          v-if="isAuthenticated"
-          block
-          text
-          @click="handleLogout"
-          class="text-left pa-5 logout"
-        >
-          <v-icon left size="20">mdi-logout</v-icon>
-          <span>Logout</span>
-        </v-btn>
-      </v-list>
-    </v-navigation-drawer>
+        </template>
+        <v-list>
+          <v-list-item to="/profile">
+            <v-list-item-title>Edit Profile</v-list-item-title>
+          </v-list-item>
+          <v-list-item to="/events">
+            <v-list-item-title>Upcoming Events</v-list-item-title>
+          </v-list-item>
+          <v-list-item to="/saved">
+            <v-list-item-title>Saved Events</v-list-item-title>
+          </v-list-item>
+          <v-divider></v-divider>
+          <v-list-item @click="handleLogout">
+            <v-list-item-title class="text-red">Logout</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
+    </v-app-bar>
 
     <!-- Main Content -->
     <v-main>
@@ -60,31 +71,19 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../services/auth.service'
 import { useUserStore } from '@/stores/users'
-
-// const props = defineProps({
-//   hideForUnauthenticated: {
-//     type: Boolean,
-//     default: true,
-//   },
-// })
+import NotificationBell from './NotificationBell.vue'
 
 const router = useRouter()
-const hoveredItem = ref(null) // Track hovered item for elevation effect
+const searchQuery = ref('')
 const userStore = useUserStore()
 
-const { isAuthenticated, currentUser, isAdmin, logout, loadUserInfo } = useAuth()
+const { isAuthenticated, currentUser, logout, loadUserInfo } = useAuth()
 
-// Load user info on component mount
 onMounted(async () => {
   await loadUserInfo()
   if (isAuthenticated.value) {
     await userStore.fetchCurrentUser()
   }
-})
-
-// Computed properties for user info
-const userName = computed(() => {
-  return currentUser.value ? currentUser.value.name || 'User' : 'Guest'
 })
 
 const userAvatar = computed(() => {
@@ -95,113 +94,14 @@ const userAvatar = computed(() => {
   )
 })
 
-// Handle logout
 function handleLogout() {
   logout()
   router.push('/')
 }
-
-const allPaths = [
-  // Public paths
-  { icon: 'mdi-home', text: 'Home', route: '/', public: true },
-  { icon: 'mdi-magnify', text: 'Events', route: '/events', public: true },
-  { icon: 'mdi-pencil', text: 'Create Event', route: '/create', public: true },
-  { icon: 'mdi-heart', text: 'About Us', route: '/about', public: true },
-
-  // Authentication paths (show login when not authenticated, profile when authenticated)
-  { icon: 'mdi-lock', text: 'Login', route: '/login', showWhenLoggedOut: true },
-  { icon: 'mdi-account', text: 'My Profile', route: '/profile', requiresAuth: true },
-
-  // Authenticated user paths
-  { icon: 'mdi-calendar', text: 'My Events', route: '/events', requiresAuth: true },
-
-  // Admin/Backend paths
-  {
-    icon: 'mdi-store',
-    text: 'User Roles',
-    route: '/roles',
-    requiresAdmin: true,
-  },
-
-  {
-    icon: 'mdi-account-group',
-    text: 'User Management',
-    route: '/users',
-    requiresAdmin: true,
-  },
-  {
-    icon: 'mdi-clipboard-list',
-    text: 'Event Management',
-    route: '/events',
-    requiresAdmin: true,
-  },
-  { icon: 'mdi-cash-register', text: 'Payments', route: '/admin/payments', requiresAdmin: true },
-  { icon: 'mdi-chart-bar', text: 'Reports', route: '/admin/reports', requiresAdmin: true },
-]
-
-// Filter paths based on authentication status and user role
-const filteredPaths = computed(() => {
-  return allPaths.filter((path) => {
-    // Public paths are always visible
-    if (path.public) return true
-
-    // Paths that should only show when logged out
-    if (path.showWhenLoggedOut && !isAuthenticated.value) return true
-
-    // Paths that require authentication
-    if (path.requiresAuth && isAuthenticated.value) {
-      // Admin-only paths
-      if (path.requiresAdmin) {
-        return isAdmin.value
-      }
-      return true
-    }
-
-    return false
-  })
-})
 </script>
 
 <style scoped>
-/* Navigation Drawer Styling */
-.nav-drawer {
-  background-color: #f5f5f5; /* Light gray background */
-  max-height: 500px;
-  margin-right: 20px;
-}
-
-/* Navigation Card Styling */
-.nav-card {
-  transition: all 0.3s ease;
-  border-radius: 8px; /* Rounded corners */
-}
-
-.nav-card:hover {
-  transform: scale(1.05); /* Slightly scale up on hover */
-}
-
-/* Reduce button padding and font size */
-.nav-card .v-btn {
-  font-size: 14px; /* Reduce text size */
-  padding: 0 8px; /* Reduce padding */
-  justify-content: center;
-  align-items: center;
-}
-.buttons {
-  background-image: url(../assets/backgrounds/AfricanPattern2.png);
-  color: white;
-  height: 10px;
-}
-.logout {
-  background-image: url(../assets/backgrounds/AfricanPattern2.png);
-  color: white;
-  height: 10px;
-  border-radius: 10px;
-}
-.userName {
-  color: white;
-}
-.v-avatar .v-img {
-  object-fit: cover;
+.v-avatar {
+  border: 2px solid white;
 }
 </style>

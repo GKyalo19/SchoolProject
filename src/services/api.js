@@ -4,19 +4,20 @@ import router from '../router/index'
 import TokenService from './token.service' //generates tokens
 
 const instance = axios.create({
-  //initializing axios (making requests)
-  baseURL: 'https://schoolproject-backend.onrender.com/api/', //path to the backend
+  // initializing axios (making requests)
+  baseURL: 'http://127.0.0.1:8000/api/', // path to the backend
+  withCredentials: true,  // Ensure cookies are sent with requests
   headers: {
     'Content-Type': 'application/json',
   },
 })
 
-//in postman we had to use a token to make requests
+// Interceptor to add token to requests
 instance.interceptors.request.use(
   (config) => {
-    const token = TokenService.getToken() //first of all we retrieve the token from the local storage
+    const token = TokenService.getToken() // Retrieve the token from local storage
     if (token) {
-      config.headers['Authorization'] = 'Bearer ' + token
+      config.headers['Authorization'] = 'Bearer ' + token // Add the token to the request header
     }
     return config
   },
@@ -32,8 +33,8 @@ instance.interceptors.response.use(
   },
   (error) => {
     if (error.response && error.response.status === 401) {
-      TokenService.removeToken() //if there's an error you're removed from the app and you're redirected to homepage
-      router.push({ name: 'Home' })
+      TokenService.removeToken() // Remove the token on authentication failure
+      router.push({ name: 'Home' }) // Redirect to the homepage
     }
     return Promise.reject(error)
   },

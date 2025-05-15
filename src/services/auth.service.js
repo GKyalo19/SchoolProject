@@ -109,7 +109,7 @@ export function useAuth() {
     user.value = null
 
     try {
-      const response = await api.get('logout')
+      const response = await api.post('logout')
       return response
     } catch (err) {
       error.value = err.response?.data?.message || 'Logout failed' //either prints the exact error message or shows the "Registration failed"

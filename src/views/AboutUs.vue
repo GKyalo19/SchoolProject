@@ -1,5 +1,5 @@
 <template>
-  <div :style="backgroundStyle">
+  <div :style="backgroundStyle" class="entirePage">
     <v-container>
       <v-card class="mx-auto text-white centered-card" elevation="24">
         <v-card-title class="text-h3">About Us</v-card-title>
@@ -27,6 +27,10 @@
   width: 50%;
   text-align: left;
   font-size: 12px;
+}
+
+.entirePage{
+  margin-bottom: 220px;
 }
 </style>
 

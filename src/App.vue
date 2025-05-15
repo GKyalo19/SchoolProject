@@ -8,12 +8,11 @@
 
         <div v-if="!showSplash"></div>
 
-        <v-content>
+        <v-content class="pages">
           <RouterView />
         </v-content>
-        <v-divider></v-divider>
       </v-main>
-      <!-- <PageFooter v-if="shouldShowFooter" /> -->
+      <PageFooter v-if="shouldShowFooter" class="pageFooter"/>
     </v-app>
 
 
@@ -23,14 +22,14 @@
 <script>
 import SplashScreen from './components/SplashScreen.vue'
 import NavigationBar from './components/NavigationBar.vue'
-//import PageFooter from './components/PageFooter.vue'
+import PageFooter from './components/PageFooter.vue'
 
 export default {
   name: 'App',
   components: {
     SplashScreen,
     NavigationBar,
-    //PageFooter,
+    PageFooter,
   },
   data() {
     return {
@@ -60,10 +59,11 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .app {
   background-image: url(../assets/image.png);
   height: 100vh;
   width: 100vw;
 }
+
 </style>

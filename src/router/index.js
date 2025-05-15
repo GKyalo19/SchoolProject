@@ -5,10 +5,6 @@ import AllEvents from '@/views/AllEvents.vue'
 import ForgotPassword from '@/views/ForgotPassword.vue'
 import ResetPassword from '@/views/ResetPassword.vue'
 import SignUp from '@/views/SignUp.vue'
-import InternationalEvents from '@/views/InternationalEvents.vue'
-import NationalEvents from '@/views/NationalEvents.vue'
-import DebateEvents from '@/views/Events/DebateEvents.vue'
-import AcademicEvents from '@/views/Events/AcademicEvents.vue'
 import AboutUs from '@/views/AboutUs.vue'
 import LoginPage from '@/views/LoginPage.vue'
 import WelcomePage from '@/views/WelcomePage.vue'
@@ -17,6 +13,7 @@ import ContactUs from '@/components/ContactUs.vue'
 import FeedBack from '@/views/FeedBack.vue'
 import CreateEvent from '@/views/CreateEvent.vue'
 import RegisterEvent from '@/views/RegisterEvent.vue'
+import MyEvents from '@/views/MyEvents.vue'
 
 const router = createRouter({
   history: createWebHistory('/'),
@@ -72,6 +69,11 @@ const router = createRouter({
       component: AllEvents,
     },
     {
+      path: '/likedEvents',
+      name: 'likedEvents',
+      component: MyEvents,
+    },
+    {
       path: '/create',
       name: 'create',
       component: CreateEvent,
@@ -90,26 +92,6 @@ const router = createRouter({
       path: '/feedback',
       name: 'feedback',
       component: FeedBack,
-    },
-    {
-      path: '/events/international',
-      name: 'internationalEvents',
-      component: InternationalEvents,
-    },
-    {
-      path: '/events/national',
-      name: 'nationalEvents',
-      component: NationalEvents,
-    },
-    {
-      path: '/events/national/Academic',
-      name: 'AcademicEvents',
-      component: AcademicEvents,
-    },
-    {
-      path: '/events/national/Debate',
-      name: 'DebateEvents',
-      component: DebateEvents,
     },
   ],
 })

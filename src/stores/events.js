@@ -1,240 +1,300 @@
+// src/stores/event.js
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import api from '@/services/api'
 
 export const useEventsStore = defineStore('events', () => {
-  // State as refs
+  // State
   const events = ref([])
-  const classifications = ref([])
+  const upcomingPaidEvents = ref([]) // New state for upcoming paid events
   const loading = ref(false)
   const error = ref(null)
   const dialog = ref(false)
   const dialogDelete = ref(false)
   const editedIndex = ref(-1)
-  const editedItem = ref({
-    id: '',
-    name: '',
-    venue: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    hosts: '',
-    sponsors: '',
-    capacity: null,
-    classification_id: null,
-  })
-
-  const defaultItem = {
-    id: '',
-    name: '',
-    venue: '',
-    description: '',
-    startDate: '',
-    endDate: '',
-    hosts: '',
-    sponsors: '',
-    capacity: null,
-    classification_id: null,
-  }
-
+  const editedItem = ref(createEmptyEvent())
   const itemToDelete = ref(null)
 
-  // Actions
-  async function fetchClassifications() {
-    try {
-      const response = await api.get('classification')
-      classifications.value = response.data.map((item) => ({
-        ...item,
-        key: item.id,
-      }))
-    } catch (err) {
-      error.value = err.response?.data?.message || err.message
-      throw err
+  // Create an empty event with all fields from Flutter model
+  function createEmptyEvent() {
+    return {
+      id: null,
+      posterUrl: null,
+      poster: null,
+      eventClass: '',
+      level: '',
+      category: '',
+      subject: '',
+      name: '',
+      participation_mode: '',
+      venue: null,
+      link: null,
+      county: null,
+      description: '',
+      startDate: new Date(),
+      endDate: new Date(),
+      hosts: '',
+      sponsors: '',
+      capacity: 0,
+      registration_fee: 0,
+      currency: 'USD',
+      userId: null,
+      isLiked: false,
+      isPaid: false // Added to match Flutter model
     }
   }
 
-  async function createEvent(eventData) {
+  // Convert event to FormData for multipart upload (matches Flutter's toMultipartFields)
+  function eventToFormData(event) {
+    const formData = new FormData()
+
+    // Add all fields except poster
+    Object.keys(event).forEach(key => {
+      if (key !== 'poster' && event[key] !== null && event[key] !== undefined) {
+        if (event[key] instanceof Date) {
+          formData.append(key, event[key].toISOString())
+        } else {
+          formData.append(key, event[key].toString())
+        }
+      }
+    })
+
+    // Add poster file if exists (matches Flutter's multipart file handling)
+    if (event.poster instanceof File) {
+      formData.append('poster', event.poster)
+    }
+
+    return formData
+  }
+
+  // Actions
+
+  // Create event (matches Flutter's createEvent)
+  async function createEvent(event) {
     try {
       loading.value = true
+      error.value = null
 
-      // 1. First try to find existing classification
-      const existingClassification = classifications.value.find(c =>
-        c.class === eventData.eventClass.join(', ') &&
-        c.level === eventData.level &&
-        c.category === eventData.category &&
-        c.subject === (eventData.subject || null)
-      )
+      const formData = eventToFormData(event)
+      const token = localStorage.getItem('authToken')
 
-      let classificationId
-      if (existingClassification) {
-        classificationId = existingClassification.id
-      } else {
-        // 2. Create new classification if needed
-        const classificationResponse = await api.post('classification', {
-          class: eventData.eventClass.join(', '),
-          level: eventData.level,
-          category: eventData.category,
-          subject: eventData.subject || null
-        })
-        classificationId = classificationResponse.data.id
-        classifications.value.push({
-          ...classificationResponse.data,
-          key: classificationResponse.data.id
-        })
-      }
+      const response = await api.post('event', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' // Added to match Flutter
+        }
+      })
 
-      // 3. Create event with the classification ID
-      const payload = {
-        classification_id: classificationId,
-        name: eventData.name,
-        venue: eventData.venue,
-        description: eventData.description,
-        startDate: formatDate(eventData.startDate),
-        endDate: formatDate(eventData.endDate),
-        hosts: eventData.hostName || 'Default Host', // Ensure hosts is always provided
-        sponsors: eventData.sponsors || '', // Default empty string if not provided
-        capacity: Number(eventData.capacity) || 0 // Default to 0 if not provided
-      }
-
-      console.log('Final payload:', payload) // Verify before sending
-
-      const eventResponse = await api.post('event', payload)
-      const newEvent = { ...eventResponse.data, key: eventResponse.data.id }
+      const newEvent = response.data
       events.value.push(newEvent)
-      return true
-
+      return newEvent
     } catch (err) {
       error.value = err.response?.data?.message || err.message
-      return false
+      console.error("Error creating event:", err)
+      throw err
     } finally {
       loading.value = false
     }
   }
 
-  // Helper function to format dates
-  function formatDate(date) {
-    if (!date) return null
-    return new Date(date).toISOString().split('T')[0] // YYYY-MM-DD format
-  }
-
-  // Add this helper function outside the actions
-  function formatDate(date) {
-    if (!date) return null
-    // Format as YYYY-MM-DD
-    return new Date(date).toISOString().split('T')[0]
-  }
-
+  // Fetch events (matches Flutter's getEvents)
   async function fetchEvents() {
     try {
       loading.value = true
-      const response = await api.get('event')
-      events.value = response.data.map((event) => ({
-        ...event,
-        key: event.id,
-      }))
+      error.value = null
+      const token = localStorage.getItem('authToken')
+
+      const response = await api.get('event', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json' // Added to match Flutter
+        }
+      })
+
+      if (response.data?.data) {
+        // Transform the response to match our event structure
+        events.value = response.data.data.map(eventData => ({
+          ...eventData,
+          startDate: new Date(eventData.startDate),
+          endDate: new Date(eventData.endDate),
+          isLiked: eventData.isLiked || false,
+          isPaid: eventData.isPaid || false, // Added to match Flutter model
+          // Ensure all fields are present
+          participation_mode: eventData.participation_mode || '',
+          registration_fee: eventData.registration_fee || 0,
+          currency: eventData.currency || 'USD'
+        }))
+      }
     } catch (err) {
       error.value = err.response?.data?.message || err.message
+      console.error("Error fetching events:", err)
       throw err
     } finally {
       loading.value = false
     }
   }
 
-  async function updateEvent(updatedEvent) {
+  // Fetch upcoming paid events (matches Flutter's getUpcomingPaidEvents)
+  async function fetchUpcomingPaidEvents() {
     try {
       loading.value = true
-      await api.put(`event/${updatedEvent.id}`, updatedEvent)
+      error.value = null
+      const token = localStorage.getItem('authToken')
 
-      const index = events.value.findIndex((e) => e.id === updatedEvent.id)
-      if (index !== -1) {
-        const key = events.value[index].key
-        events.value[index] = { ...updatedEvent, key }
+      const response = await api.get('events/upcoming/paid', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      })
+
+      if (response.data?.data) {
+        // Transform the response to match our event structure
+        upcomingPaidEvents.value = response.data.data.map(eventData => ({
+          ...eventData,
+          startDate: new Date(eventData.startDate),
+          endDate: new Date(eventData.endDate),
+          isLiked: eventData.isLiked || false,
+          isPaid: eventData.isPaid || false,
+          // Ensure all fields are present
+          participation_mode: eventData.participation_mode || '',
+          registration_fee: eventData.registration_fee || 0,
+          currency: eventData.currency || 'USD'
+        }))
       }
-      return true
     } catch (err) {
       error.value = err.response?.data?.message || err.message
-      return false
+      console.error("Error fetching upcoming paid events:", err)
+      throw err
     } finally {
       loading.value = false
     }
   }
 
-  function deleteEvent(id) {
+  // Check payment status (matches Flutter's checkPaymentStatus)
+  async function checkPaymentStatus(eventId) {
+    try {
+      error.value = null
+      const token = localStorage.getItem('authToken')
+
+      const response = await api.get(`payment/status/${eventId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      })
+
+      return response.data?.status === true
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      console.error("Error checking payment status:", err)
+      return false // Return false on error, matching Flutter implementation
+    }
+  }
+
+  // Update event (matches Flutter's editEvent)
+  async function updateEvent(updatedEvent) {
+    try {
+      loading.value = true
+      error.value = null
+      const token = localStorage.getItem('authToken')
+
+      const formData = eventToFormData(updatedEvent)
+
+      // Updated to match Flutter endpoint
+      const response = await api.put('editEvent', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      })
+
+      const index = events.value.findIndex(e => e.id === updatedEvent.id)
+      if (index !== -1) {
+        events.value[index] = response.data
+      }
+      return response.data
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      console.error("Error updating event:", err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // Delete event
+  async function deleteEvent(id) {
+    try {
+      loading.value = true
+      error.value = null
+      const token = localStorage.getItem('authToken')
+
+      await api.delete(`event/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json'
+        }
+      })
+
+      events.value = events.value.filter(e => e.id !== id)
+    } catch (err) {
+      error.value = err.response?.data?.message || err.message
+      console.error("Error deleting event:", err)
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  // UI Helpers
+  function openCreateDialog() {
+    editedIndex.value = -1
+    editedItem.value = createEmptyEvent()
+    dialog.value = true
+  }
+
+  function openEditDialog(id) {
+    const event = events.value.find(e => e.id === id)
+    if (event) {
+      editedIndex.value = events.value.findIndex(e => e.id === id)
+      editedItem.value = JSON.parse(JSON.stringify(event)) // Deep clone
+      dialog.value = true
+    }
+  }
+
+  function closeDialog() {
+    dialog.value = false
+    setTimeout(() => {
+      editedItem.value = createEmptyEvent()
+      editedIndex.value = -1
+    }, 300)
+  }
+
+  function openDeleteDialog(id) {
     itemToDelete.value = id
     dialogDelete.value = true
   }
 
-  async function deleteEventConfirm() {
-    try {
-      loading.value = true
-      await api.delete(`event/${itemToDelete.value}`)
-      events.value = events.value.filter((e) => e.id !== itemToDelete.value)
-      return true
-    } catch (err) {
-      error.value = err.response?.data?.message || err.message
-      return false
-    } finally {
-      loading.value = false
-      closeDelete()
-    }
-  }
-
-  function openDialog() {
-    editedIndex.value = -1
-    editedItem.value = { ...defaultItem }
-    dialog.value = true
-  }
-
-  async function editItem(id) {
-    try {
-      const response = await api.get(`event/${id}`)
-      editedIndex.value = events.value.findIndex((e) => e.id === id)
-      editedItem.value = { ...response.data[0] }
-      dialog.value = true
-    } catch (err) {
-      error.value = err.response?.data?.message || err.message
-    }
-  }
-
-  function close() {
-    dialog.value = false
-    setTimeout(() => {
-      editedItem.value = { ...defaultItem }
-      editedIndex.value = -1
-    }, 0)
-  }
-
-  function closeDelete() {
+  function closeDeleteDialog() {
     dialogDelete.value = false
     setTimeout(() => {
       itemToDelete.value = null
-    }, 0)
+    }, 300)
   }
 
+  // Initialize store
   function initialize() {
     fetchEvents()
-    fetchClassifications()
+    fetchUpcomingPaidEvents() // Added to fetch upcoming paid events on initialization
   }
-
-  // Getters as computed properties
-  const nationalEvents = computed(() => {
-    return events.value.filter((e) => {
-      const classification = classifications.value.find((c) => c.id === e.classification_id)
-      return classification?.level === 'National'
-    })
-  })
-
-  const internationalEvents = computed(() => {
-    return events.value.filter((e) => {
-      const classification = classifications.value.find((c) => c.id === e.classification_id)
-      return classification?.level === 'International'
-    })
-  })
 
   return {
     // State
     events,
-    classifications,
+    upcomingPaidEvents, // Added to expose upcomingPaidEvents
     loading,
     error,
     dialog,
@@ -242,20 +302,25 @@ export const useEventsStore = defineStore('events', () => {
     editedIndex,
     editedItem,
     itemToDelete,
-    nationalEvents,
-    internationalEvents,
 
     // Actions
-    fetchClassifications,
     createEvent,
     fetchEvents,
+    fetchUpcomingPaidEvents, // Added to expose fetchUpcomingPaidEvents
+    checkPaymentStatus, // Added to expose checkPaymentStatus
     updateEvent,
     deleteEvent,
-    deleteEventConfirm,
-    openDialog,
-    editItem,
-    close,
-    closeDelete,
     initialize,
+
+    // UI Helpers
+    openCreateDialog,
+    openEditDialog,
+    closeDialog,
+    openDeleteDialog,
+    closeDeleteDialog,
+
+    // Utility functions (exposed if needed by components)
+    createEmptyEvent,
+    eventToFormData
   }
 })

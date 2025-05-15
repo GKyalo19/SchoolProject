@@ -50,6 +50,13 @@ const backgroundStyle = {
 </script>
 
 <style>
+.image{
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background-repeat: no-repeat;
+  display: flex;
+}
 .glass {
   background: rgba(0, 0, 0, 0.767);
   padding: 20px;
@@ -61,7 +68,7 @@ const backgroundStyle = {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  min-height: 100vh;
   width: 100vw;
 }
 .firstCard {

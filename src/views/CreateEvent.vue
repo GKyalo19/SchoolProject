@@ -1,473 +1,628 @@
 <template>
-  <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
-    {{ snackbar.message }}
-    <template v-slot:action="{ attrs }">
-      <v-btn text v-bind="attrs" @click="snackbar.show = false">Close</v-btn>
-    </template>
-  </v-snackbar>
+  <div class="background-container">
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" :timeout="3000">
+      {{ snackbar.message }}
+      <template v-slot:actions>
+        <v-btn color="white" text @click="snackbar.show = false"> Close </v-btn>
+      </template>
+    </v-snackbar>
 
-  <div class="page-container" :style="backgroundStyle">
-    <v-container class="content-container">
-      <v-card class="user-card">
-        <v-avatar size="300">
-          <v-img :src="userAvatar" :alt="userName"></v-img>
-        </v-avatar>
-        <v-card-title
-        class="text-center"
-        v-model="eventData.hostName"
-        >Event host: {{ userName }}</v-card-title>
-      </v-card>
+    <div class="page-container">
+      <h1 class="create-event-title">Create Event</h1>
 
       <v-card class="form-card">
-        <v-form v-model="formValid" @submit.prevent="submitForm">
-          <v-text-field
-            v-model="eventData.name"
-            placeholder="Name of event"
-            outlined
-            dense
-            :rules="[(v) => !!v || 'Event name is required']"
-            required
-          ></v-text-field>
-          <v-text-field
-            v-model="eventData.venue"
-            placeholder="Event venue"
-            outlined
-            dense
-            :rules="[(v) => !!v || 'Event venue is required']"
-            required
-          ></v-text-field>
-          <v-text-field
-            v-model="eventData.description"
-            placeholder="Event description"
-            outlined
-            :rules="[(v) => !!v || 'Event description is required']"
-            required
-            dense
-          ></v-text-field>
-
-          <v-select
-            v-model="eventData.platform"
-            clearable
-            chips
-            label="Event platform"
-            :items="['Physical', 'Online']"
-            :rules="[(v) => !!v || 'Event platform is required']"
-            required
-            multiple
-          ></v-select>
-
-          <v-select
-            v-model="eventData.eventClass"
-            clearable
-            chips
-            label="Pick event class"
-            :items="['High School', 'University']"
-            :rules="[(v) => !!v || 'Event class is required']"
-            required
-            multiple
-          ></v-select>
-
-          <v-select
-            v-model="eventData.level"
-            clearable
-            chips
-            label="Pick event level"
-            :items="['National', 'International']"
-            :rules="[(v) => !!v || 'Event level is required']"
-            required
-            @update:modelValue="eventData.category = ''"
-          ></v-select>
-
-          <v-select
-            v-if="eventData.level === 'National'"
-            v-model="eventData.category"
-            clearable
-            chips
-            label="Select event category"
-            :items="nationalCategories"
-            :rules="[(v) => !!v || 'Event category is required']"
-            required
-          ></v-select>
-
-          <v-select
-            v-if="eventData.level === 'International'"
-            v-model="eventData.category"
-            clearable
-            chips
-            label="Select event category"
-            :items="internationalCategories"
-            :rules="[(v) => !!v || 'Event category is required']"
-            required
-          ></v-select>
-
-          <v-select
-            v-if="eventData.level === 'National' && eventData.category === 'Academic'"
-            v-model="eventData.subject"
-            clearable
-            chips
-            label="Select event subject"
-            :items="academicSubjects"
-            :rules="[(v) => !!v || 'Event subject is required']"
-            required
-          ></v-select>
-
-          <div class="date-pickers">
-            <v-date-picker
-              v-model="eventData.startDate"
-              label="Start Date"
-              variant="outlined"
-              class="ma-2"
-              :rules="[(v) => !!v || 'Event start date is required']"
-              required
-            ></v-date-picker>
-            <v-date-picker
-              v-model="eventData.endDate"
-              label="End Date"
-              variant="outlined"
-              class="ma-2"
-              :rules="[(v) => !!v || 'Event end date is required']"
-              reqiured
-            ></v-date-picker>
+        <v-form ref="form" @submit.prevent="submitForm">
+          <!-- Poster Upload Section -->
+          <div class="form-section">
+            <v-card-subtitle class="section-header pb-1 font-weight-bold"
+              >Event Poster</v-card-subtitle
+            >
+            <div class="d-flex flex-column align-center">
+              <div class="poster-container">
+                <v-img
+                  v-if="selectedImage"
+                  :src="selectedImage"
+                  height="250"
+                  cover
+                  class="poster-image"
+                ></v-img>
+                <div v-else class="poster-placeholder">
+                  <span>No image selected</span>
+                </div>
+              </div>
+              <v-file-input
+                v-model="posterFile"
+                accept="image/*"
+                label="Upload Poster"
+                prepend-icon="mdi-camera"
+                @change="onImageChange"
+                hide-details
+                class="mt-3"
+                variant="outlined"
+                density="comfortable"
+              ></v-file-input>
+            </div>
           </div>
 
-          <v-text-field
-            v-model="eventData.capacity"
-            type="number"
-            placeholder="Event Capacity"
-            outlined
-            dense
-          ></v-text-field>
+          <!-- Basic Information Section -->
+          <div class="form-section">
+            <v-card class="sections">
+              <v-card-subtitle class="section-header pb-4 font-weight-bold"
+                >Basic Information</v-card-subtitle
+              >
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="event.name"
+                    label="Event Name*"
+                    placeholder="e.g. Annual Science Fair"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-text-field
+                    v-model="event.hosts"
+                    label="Host Name(s)*"
+                    placeholder="e.g. University of Nairobi"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12">
+                  <v-textarea
+                    v-model="event.description"
+                    label="Description*"
+                    placeholder="Detailed description of your event..."
+                    variant="outlined"
+                    rows="3"
+                    auto-grow
+                    required
+                  ></v-textarea>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
 
-          <v-select
-            v-model="eventData.participationMode"
-            clearable
-            chips
-            label="Mode of participation"
-            :items="['Individuals', 'Teams']"
-            :rules="[(v) => !!v || 'Participation mode is required']"
-            required
-          ></v-select>
+          <!-- Date & Time Section -->
+          <div class="form-section">
+            <v-card class="sections">
+              <v-card-subtitle class="section-header pb-4 font-weight-bold"
+                >Date & Time</v-card-subtitle
+              >
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-dialog
+                    ref="startDialog"
+                    v-model="startDialog"
+                    :close-on-content-click="false"
+                    width="auto"
+                  >
+                    <template v-slot:activator="{ props }">
+                      <v-text-field
+                        v-model="event.startDate"
+                        label="Start Date & Time*"
+                        readonly
+                        v-bind="props"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-icon="mdi-calendar"
+                      ></v-text-field>
+                    </template>
+                    <v-card>
+                      <v-date-picker
+                        v-model="startDate"
+                        @update:model-value="startDialog = false"
+                      ></v-date-picker>
+                    </v-card>
+                  </v-dialog>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-dialog
+                    ref="endDialog"
+                    v-model="endDialog"
+                    :close-on-content-click="false"
+                    width="auto"
+                  >
+                    <template v-slot:activator="{ props }">
+                      <v-text-field
+                        v-model="event.endDate"
+                        label="End Date & Time*"
+                        readonly
+                        v-bind="props"
+                        variant="outlined"
+                        density="comfortable"
+                        prepend-icon="mdi-calendar"
+                      ></v-text-field>
+                    </template>
+                    <v-card>
+                      <v-date-picker
+                        v-model="endDate"
+                        @update:model-value="endDialog = false"
+                      ></v-date-picker>
+                    </v-card>
+                  </v-dialog>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
 
-          <v-text-field
-            v-if="eventData.participationMode === 'Teams'"
-            v-model="eventData.participantsPerTeam"
-            type="number"
-            placeholder="Participants per team"
-            outlined
-            dense
-          ></v-text-field>
+          <!-- Event Details Section -->
+          <div class="form-section">
+            <v-card class="sections">
+              <v-card-subtitle class="section-header pb-4 font-weight-bold"
+                >Event Details</v-card-subtitle
+              >
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-select
+                    v-model="event.participation_mode"
+                    :items="platforms"
+                    label="Participation Mode*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="8" v-if="event.participation_mode === 'Physical'">
+                  <v-text-field
+                    v-model="event.venue"
+                    label="Venue*"
+                    placeholder="e.g. Main Auditorium"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="8" v-if="event.participation_mode === 'Physical'">
+                  <v-text-field
+                    v-model="event.county"
+                    label="County*"
+                    placeholder="e.g. Nairobi"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="6" v-if="event.participation_mode === 'Online'">
+                  <v-text-field
+                    v-model="event.link"
+                    label="Event Link*"
+                    type="url"
+                    placeholder="https://example.com/event"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
 
-          <v-text-field
-            v-model="eventData.sponsors"
-            placeholder="Event sponsors (eg. abc, def,...)"
-            outlined
-            dense
-          ></v-text-field>
+          <!-- Classification Section -->
+          <div class="form-section">
+            <v-card class="sections">
+              <v-card-subtitle class="section-header pb-4 font-weight-bold"
+                >Classification</v-card-subtitle
+              >
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-select
+                    v-model="event.eventClass"
+                    :items="dropDown.eventClass"
+                    label="Event Class*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-select
+                    v-model="event.level"
+                    :items="dropDown.level"
+                    label="Level*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                    @update:model-value="selectedCategory = ''"
+                  ></v-select>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-select
+                    v-model="selectedCategory"
+                    :items="
+                      event.level === 'National'
+                        ? dropDown.nationalCategories
+                        : dropDown.internationalCategories
+                    "
+                    label="Category*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                    @update:model-value="event.subject = ''"
+                  ></v-select>
+                </v-col>
+                <v-col
+                  cols="12"
+                  md="6"
+                  v-if="selectedCategory === 'Academic' && event.level === 'National'"
+                >
+                  <v-select
+                    v-model="event.subject"
+                    :items="dropDown.academicSubjects"
+                    label="Subject*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
 
-          <div class="fee-container">
+          <!-- Capacity & Fees Section -->
+          <div class="form-section">
+            <v-card class="sections">
+              <v-card-subtitle class="section-header pb-4 font-weight-bold"
+                >Capacity & Fees</v-card-subtitle
+              >
+              <v-row>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="event.capacity"
+                    type="number"
+                    min="1"
+                    label="Capacity*"
+                    placeholder="Maximum attendees"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-text-field
+                    v-model="event.registration_fee"
+                    type="number"
+                    min="0"
+                    label="Registration Fee*"
+                    placeholder="Amount in selected currency"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-text-field>
+                </v-col>
+                <v-col cols="12" md="8">
+                  <v-select
+                    v-model="event.currency"
+                    :items="dropDown.currency"
+                    label="Currency*"
+                    variant="outlined"
+                    density="comfortable"
+                    required
+                  ></v-select>
+                </v-col>
+              </v-row>
+            </v-card>
+          </div>
+
+          <!-- Sponsors Section -->
+          <div class="form-section">
             <v-text-field
-              v-model="eventData.registrationFee"
-              type="number"
-              placeholder="Registration fee"
-              outlined
-              dense
-              :rules="[(v) => !!v || 'Registration fee is required']"
-              required
-              class="fee-input"
+              v-model="event.sponsors"
+              label="Sponsors (comma separated)"
+              placeholder="e.g. Company A, Company B, Organization C"
+              variant="outlined"
+              density="comfortable"
             ></v-text-field>
-            <v-select
-              v-model="eventData.currency"
-              :items="['USD', 'EUR', 'KES', 'GBP']"
-              dense
-              :rules="[(v) => !!v || 'Currency is required']"
-              required
-              class="currency-select"
-            ></v-select>
           </div>
 
-          <v-btn
-            :disabled="!formValid"
-            :loading="loading"
-            color="success"
-            size="large"
-            type="submit"
-            variant="elevated"
-            block
-            class="submit-btn"
-          >
-            Create Event
-          </v-btn>
+          <!-- Form Actions -->
+          <div class="d-flex justify-center gap-4 mt-6">
+            <v-btn variant="outlined" color="primary" @click="resetForm" :disabled="loading">
+              Reset
+            </v-btn>
+
+            <v-spacer></v-spacer>
+            <v-btn
+              type="submit"
+              variant="elevated"
+              color="primary"
+              :loading="loading"
+              :disabled="!isFormValid"
+            >
+              {{ loading ? 'Creating...' : 'Create Event' }}
+            </v-btn>
+          </div>
         </v-form>
       </v-card>
-    </v-container>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { useAuth } from '@/services/auth.service'
-import backgroundImage from '../assets/backgrounds/Dancers3.png'
-import { ref, computed, onMounted } from 'vue'
-import { useUserStore } from '@/stores/users'
-import { useEventsStore } from '@/stores/events'
+import { ref, computed } from 'vue'
+import { useEventsStore } from '../stores/events'
+import { useRouter } from 'vue-router'
+// import { format } from 'date-fns'
 
-const { currentUser, isAuthenticated, loadUserInfo } = useAuth()
-const userStore = useUserStore()
-const eventsStore = useEventsStore()
+const eventStore = useEventsStore()
+const router = useRouter()
 
-const snackbar = ref({
-  show: false,
-  message: '',
-  color: 'success',
-})
-
-// Form data structure
-const eventData = ref({
-  name: '',
-  venue: '',
-  description: '',
-  platform: [],
-  eventClass: [],
-  level: '',
-  category: '',
-  subject: '',
-  startDate: null,
-  endDate: null,
-  capacity: null,
-  participationMode: '',
-  participantsPerTeam: null,
-  sponsors: '',
-  registrationFee: null,
-  currency: 'USD',
-  hostId: null,
-  hostName: '',
-})
-
-const formValid = ref(false)
+// Initialize empty event using store's utility function
+const event = ref(eventStore.createEmptyEvent())
+const selectedImage = ref(null)
+const posterFile = ref(null)
+const selectedCategory = ref('')
 const loading = ref(false)
 
-// Constants for select options
-const nationalCategories = [
-  'Academic',
-  'Debate',
-  'Music and Drama',
-  'Research Program',
-  'Journalism',
-  'Coding',
-  'Sports',
-  'Workshop and Seminar',
-  'Leadership Program',
-  'Mentorship program',
-]
+// Date picker variables
+const startDialog = ref(false)
+const endDialog = ref(false)
+const startDate = ref(new Date().toISOString().substr(0, 10))
+const endDate = ref(new Date().toISOString().substr(0, 10))
 
-const internationalCategories = [
-  'Olympiad',
-  'Debate',
-  'STEM Program',
-  'Research Program',
-  'Summer Program',
-  'Coding',
-  'Travel Program',
-  'Workshop and Seminar',
-  'Leadership Program',
-  'Mentorship program',
-]
+// Snackbar state
+const snackbar = ref({
+  show: false,
+  color: 'success',
+  message: '',
+})
 
-const academicSubjects = [
-  'Math',
-  'Languages (English, Kiswahili, Foreign Languages etc)',
-  'Science (Biology, Physics, Chemistry)',
-  'Technicals (Computer Science, HomeScience, Agriculture, Woodwork, MetalWork, Aviation etc)',
-  'Humanity subject (Geography, History)',
-  'Religious Subject (CRE, IRE, Hindu etc)',
-]
+// Form reference
+const form = ref(null)
 
-// Initialize component
-onMounted(async () => {
-  await loadUserInfo()
-  if (isAuthenticated.value) {
-    await userStore.fetchCurrentUser()
-    eventData.value.hostId = currentUser.value?.id
-    eventData.value.hostName = currentUser.value?.name || 'Default Host' // Ensure this is set
+const platforms = ['Online', 'Physical']
+const dropDown = {
+  eventClass: ['HighSchool', 'University'],
+  level: ['National', 'International'],
+  nationalCategories: [
+    'Academic',
+    'Debate',
+    'Art',
+    'Music and Drama',
+    'Research Program',
+    'Journalism',
+    'Coding',
+    'Sports',
+    'Workshop and Seminar',
+    'Leadership Program',
+    'Mentorship Program',
+  ],
+  internationalCategories: [
+    'Olympiad',
+    'Debate',
+    'STEM Program',
+    'Research Program',
+    'Summer Program',
+    'Coding',
+    'Travel Program',
+    'Workshop and Seminar',
+    'Leadership Program',
+    'Mentorship Program',
+    'Sports',
+    'Art',
+  ],
+  academicSubjects: [
+    'Math',
+    'Languages (English, Kiswahili etc)',
+    'Science (Biology, Physics, Chemistry)',
+    'Technicals (Agriculture, HomeScience etc)',
+    'Humanity subject (Geography, History)',
+    'Religious Subject (CRE, IRE, Hindu etc)',
+  ],
+  currency: ['KES', 'USD', 'EUR', 'GBP'],
+}
+
+// Format dates for display
+// const formattedStartDate = computed(() => {
+//   return startDate.value ? format(new Date(startDate.value), 'EEEE, MMMM d, yyyy') : ''
+// })
+
+// const formattedEndDate = computed(() => {
+//   return endDate.value ? format(new Date(endDate.value), 'EEEE, MMMM d, yyyy') : ''
+// })
+
+// Update event dates when datepicker values change
+
+// Computed property to check if form is valid
+const isFormValid = computed(() => {
+  return (
+    event.value.name &&
+    event.value.hosts &&
+    event.value.description &&
+    event.value.startDate &&
+    event.value.endDate &&
+    event.value.participation_mode &&
+    (event.value.participation_mode === 'Online' ? event.value.link : true) &&
+    (event.value.participation_mode === 'Physical'
+      ? event.value.venue && event.value.county
+      : true) &&
+    event.value.eventClass &&
+    event.value.level &&
+    selectedCategory.value &&
+    (selectedCategory.value === 'Academic' && event.value.level === 'National'
+      ? event.value.subject
+      : true) &&
+    event.value.capacity > 0 &&
+    event.value.registration_fee >= 0 &&
+    event.value.currency
+  )
+})
+
+function onImageChange(files) {
+  if (files && files.length > 0) {
+    const file = files[0]
+    event.value.poster = file
+    selectedImage.value = URL.createObjectURL(file)
+  } else {
+    selectedImage.value = null
   }
-})
-
-const userName = computed(() => {
-  return currentUser.value ? currentUser.value.name || 'User' : 'Guest'
-})
-
-const userAvatar = computed(() => {
-  return currentUser.value?.avatar || 'default-avatar.jpg'
-})
-
-const backgroundStyle = computed(() => ({
-  backgroundImage: `url(${backgroundImage})`,
-  backgroundSize: 'cover',
-  backgroundPosition: 'center',
-  minHeight: '100vh',
-}))
+}
 
 async function submitForm() {
-  if (!formValid.value) return
-
-  loading.value = true
-  try {
-    console.log('Submitting form with data:', eventData.value) // Debug log
-
-    const success = await eventsStore.createEvent(eventData.value)
-
-    if (success) {
-      showSnackbar('Event created successfully!', 'success')
-      resetForm()
-    } else {
-      const errorMessage = eventsStore.error || 'Failed to create event. Please try again.'
-      showSnackbar(errorMessage, 'error')
+  if (!isFormValid.value) {
+    snackbar.value = {
+      show: true,
+      color: 'error',
+      message: 'Please fill all required fields correctly',
     }
+    return
+  }
+
+  try {
+    loading.value = true
+
+    // Update event dates from datepickers
+    event.value.startDate = new Date(startDate.value).toISOString()
+    event.value.endDate = new Date(endDate.value).toISOString()
+
+    // Set category from selected category
+    event.value.category = selectedCategory.value
+
+    // Create the event using the store
+    const createdEvent = await eventStore.createEvent(event.value)
+
+    // Show success message
+    snackbar.value = {
+      show: true,
+      color: 'success',
+      message: 'Event created successfully!',
+    }
+
+    // Redirect to event details
+    setTimeout(() => {
+      router.push({ name: 'event-details', params: { id: createdEvent.id } })
+    }, 2000)
   } catch (error) {
-    console.error('Form submission error:', error)
-    const errorMessage =
-      error.response?.data?.message || eventsStore.error || 'An unexpected error occurred'
-    showSnackbar(errorMessage, 'error')
+    console.error('Error creating event:', error)
+    snackbar.value = {
+      show: true,
+      color: 'error',
+      message: `Failed to create event: ${error.message || 'Please try again'}`,
+    }
   } finally {
     loading.value = false
   }
 }
 
-function showSnackbar(message, color = 'success') {
+function resetForm() {
+  event.value = eventStore.createEmptyEvent()
+  selectedImage.value = null
+  posterFile.value = null
+  selectedCategory.value = ''
+  startDate.value = new Date().toISOString().substr(0, 10)
+  endDate.value = new Date().toISOString().substr(0, 10)
+
+  // Reset form validation if the form ref exists
+  if (form.value) {
+    form.value.reset()
+  }
+
   snackbar.value = {
     show: true,
-    message,
-    color,
-  }
-}
-
-function resetForm() {
-  eventData.value = {
-    host:'',
-    name: '',
-    venue: '',
-    description: '',
-    platform: [],
-    eventClass: [],
-    level: '',
-    category: '',
-    subject: '',
-    startDate: null,
-    endDate: null,
-    capacity: null,
-    participationMode: '',
-    participantsPerTeam: null,
-    sponsors: '',
-    registrationFee: null,
-    currency: 'USD',
-    hostId: eventData.value.hostId,
-    hostName: eventData.value.hostName,
+    color: 'info',
+    message: 'Form has been reset',
   }
 }
 </script>
 
 <style scoped>
-.page-container {
-  padding: 20px 0;
+.background-container {
+  position: relative;
   min-height: 100vh;
-}
-
-.content-container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 30px;
-}
-
-.user-card {
   width: 100%;
-  max-width: 350px;
-  padding: 20px;
+  background-image: url('../assets/math/olympiad.png'), url('../assets/backgrounds/Dancers3.png');
+  background-size:
+    100% 50%,
+    100% 50%;
+  background-position: bottom, top;
+  background-repeat: no-repeat;
+  padding: 40px 16px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.background-container::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 50px;
+  background: linear-gradient(
+    to right bottom,
+    transparent 49%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 51%
+  );
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.page-container {
+  width: 100%;
+  max-width: 900px;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background-color: rgba(255, 255, 255, 0.9);
+}
+.sections {
+  background-color: transparent;
+  margin-bottom: 20px;
 }
 
-:deep(.v-label) {
-  color: black !important;
+.section-header {
+  color: white !important;
+  font-size: 1.2rem !important;
 }
 
-:deep(.v-field__input) {
-  color: black !important;
-}
-
-:deep(.v-select .v-label) {
-  color: black !important;
-}
-
-:deep(.v-date-picker .v-label) {
-  color: rgba(0, 0, 0, 0.87) !important;
-}
-
-:deep(input),
-:deep(textarea) {
-  color: black !important;
+.create-event-title {
+  color: white;
+  font-size: 40px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  margin-bottom: 24px;
+  font-weight: bold;
 }
 
 .form-card {
-  width: 100%;
-  max-width: 700px;
+  width: 700px;
   padding: 30px;
-  background-color: rgba(255, 255, 255, 0.9);
-  border-radius: 15px;
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.5) !important;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
 }
 
-.v-text-field,
-.v-select {
-  margin: 12px 0;
-  background-color: rgba(255, 255, 255, 0.8);
+.form-section {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.date-pickers {
+.form-section:last-child {
+  border-bottom: none;
+}
+
+.poster-container {
+  width: 100%;
+  height: 250px;
+  border: 2px dashed rgba(255, 255, 255, 0.404);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.poster-placeholder {
+  width: 100%;
+  height: 100%;
   display: flex;
-  gap: 20px;
-  margin: 12px 0;
-}
-
-.fee-container {
-  display: flex;
-  gap: 10px;
   align-items: center;
-}
-
-.fee-input {
-  flex: 1;
-}
-
-.currency-select {
-  width: 120px;
-}
-
-.submit-btn {
-  margin-top: 20px;
-}
-
-@media (max-width: 768px) {
-  .content-container {
-    padding: 10px;
-  }
-
-  .date-pickers {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .fee-container {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .currency-select {
-    width: 100%;
-  }
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.03);
+  color: rgb(255, 255, 255);
 }
 </style>

@@ -1,22 +1,21 @@
-<!-- src/views/DiscoverPage.vue -->
+<!-- src/views/LikedEventsPage.vue -->
 <template>
-  <div class="discover-page">
-    <h1 class="page-title">Discover Events</h1>
+  <div class="liked-events-page">
+    <h1 class="page-title">My Liked Events</h1>
 
-    <div v-if="eventsStore.loading" class="loader-container">
+    <div v-if="likesStore.loading" class="loader-container">
       <div class="loader"></div>
     </div>
 
-    <div v-else-if="!eventsStore.events.length" class="no-events">
-      No events found
+    <div v-else-if="!likesStore.likedEvents.length" class="no-events">
+      No liked events found
     </div>
 
     <div v-else class="events-grid">
       <div
-        v-for="event in eventsStore.events"
+        v-for="event in likesStore.likedEvents"
         :key="event.id"
         class="event-card"
-        @click="goToEventPage(event)"
       >
         <div class="event-image">
           <img :src="event.posterUrl || '/placeholder-image.jpg'" alt="Event poster" />
@@ -31,8 +30,8 @@
                 <i class="fas fa-share"></i>
               </button>
 
-              <button class="like-button" @click.stop="toggleLike(event)">
-                <i :class="['fas', event.isLiked ? 'fa-heart' : 'fa-heart-o']"></i>
+              <button class="like-button" @click.stop="unlikeEvent(event, $event)">
+                <i class="fas fa-heart"></i>
               </button>
             </div>
           </div>
@@ -49,28 +48,15 @@
 
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useEventsStore } from '../stores/events'
-import { useLikesStore } from '../stores/likes'
+import { useLikesStore } from '@/stores/likes'
 import { format } from 'date-fns'
 
-const router = useRouter()
-const eventsStore = useEventsStore()
 const likesStore = useLikesStore()
 
-// Initialize stores
+// Initialize store and fetch liked events
 onMounted(() => {
-  eventsStore.initialize()
+  likesStore.initialize()
 })
-
-// Go to event details page
-function goToEventPage(event) {
-  router.push({
-    name: 'event-details',
-    params: { id: event.id },
-    state: { event }
-  })
-}
 
 // Format date
 function formatDate(date) {
@@ -89,30 +75,19 @@ function shareEvent(event) {
       .catch((error) => console.log('Error sharing:', error))
   } else {
     // Fallback for browsers that don't support the Web Share API
-    // You could show a custom share dialog here
     alert(`Share: ${event.name}\n${event.description}`)
   }
 }
 
-// Toggle like/unlike
-async function toggleLike(event) {
+// Unlike event with index-based removal
+async function unlikeEvent(event, clickEvent) {
   try {
-    const wasLiked = event.isLiked
+    // Prevent event propagation
+    clickEvent.stopPropagation()
 
-    // Optimistically update UI
-    event.isLiked = !wasLiked
-
-    // Call API to update like status
-    if (wasLiked) {
-      await likesStore.unlikeEvent(event)
-      showNotification('Unliked event')
-    } else {
-      await likesStore.likeEvent(event)
-      showNotification('Event liked')
-    }
+    await likesStore.unlikeEvent(event)
+    showNotification('Unliked event')
   } catch (error) {
-    // Revert on error
-    event.isLiked = !event.isLiked
     showNotification(`Error: ${error.message}`)
   }
 }
@@ -137,7 +112,7 @@ function showNotification(message) {
 </script>
 
 <style scoped>
-.discover-page {
+.liked-events-page {
   padding: 1.5rem;
   height: 100%;
   overflow-y: auto;
@@ -190,7 +165,6 @@ function showNotification(message) {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   background-color: #fff;
   transition: transform 0.2s ease;
-  cursor: pointer;
 }
 
 .event-card:hover {
